@@ -107,8 +107,8 @@ function App() {
     <div className="container">
       <header className="app-header animate-fade-in" style={{ position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', alignItems: 'center', gap: '1rem' }}>
-          <img src="/logo.png" alt="AcopioActivo Logo" style={{ width: '64px', height: '64px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }} />
-          <h1 className="app-title" style={{ margin: 0 }}>AcopioActivo</h1>
+          <img src="/logo.png" alt="RedAyuda Logo" style={{ width: '64px', height: '64px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }} />
+          <h1 className="app-title" style={{ margin: 0 }}>RedAyuda</h1>
         </div>
         <p className="app-subtitle">Encuentra dónde donar o ayudar cerca de ti. Información verificada por la comunidad.</p>
         
