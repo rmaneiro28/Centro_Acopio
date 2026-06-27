@@ -5,6 +5,7 @@ import MapSelector from './MapSelector';
 const AddCenterModal = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     nombre: '',
+    tipo: 'centro_acopio',
     municipio: '',
     direccion: '',
     contacto_telefono: '',
@@ -118,6 +119,7 @@ const AddCenterModal = ({ onClose, onSubmit }) => {
     const newCenter = {
       id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
       nombre: formData.nombre,
+      tipo: formData.tipo,
       municipio: formData.municipio,
       direccion: formData.direccion,
       contacto_telefono: formData.contacto_telefono,
@@ -155,6 +157,20 @@ const AddCenterModal = ({ onClose, onSubmit }) => {
             </label>
             <MapSelector onLocationSelected={handleLocationSelected} />
             {isGeocoding && <small style={{ color: 'var(--accent-color)', display: 'block', marginTop: '0.5rem' }}>Obteniendo dirección de las coordenadas...</small>}
+          </div>
+
+          <div style={{ marginBottom: '1.2rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Tipo de Lugar *</label>
+            <select 
+              name="tipo"
+              value={formData.tipo}
+              onChange={handleChange}
+              className="input-field"
+            >
+              <option value="centro_acopio">📦 Centro de Acopio (Donaciones)</option>
+              <option value="refugio">🏠 Refugio (Albergue Temporal)</option>
+              <option value="hospital">🏥 Hospital / Clínica</option>
+            </select>
           </div>
 
           <div style={{ marginBottom: '1.2rem' }}>

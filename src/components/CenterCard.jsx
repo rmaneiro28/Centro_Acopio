@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapPin, Clock, Phone, AlertCircle, CheckCircle2, XCircle, Info, ChevronRight, Map } from 'lucide-react';
 
 const Badge = ({ estado }) => {
@@ -9,6 +9,16 @@ const Badge = ({ estado }) => {
 };
 
 const CenterCard = ({ center, onUpdateClick }) => {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    // Actualizar el componente cada 60 segundos para refrescar el tiempo relativo ("hace X min")
+    const intervalId = setInterval(() => {
+      setTick(t => t + 1);
+    }, 60000);
+    return () => clearInterval(intervalId);
+  }, []);
+
   const timeAgo = (dateString) => {
     const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
     const diff = (new Date(dateString) - new Date()) / 1000;
@@ -25,7 +35,9 @@ const CenterCard = ({ center, onUpdateClick }) => {
   return (
     <div className="glass-panel animate-fade-in" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{center.nombre}</h3>
+        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {center.tipo === 'refugio' ? '🏠' : center.tipo === 'hospital' ? '🏥' : '📦'} {center.nombre}
+        </h3>
         <Badge estado={center.estado_capacidad} />
       </div>
       

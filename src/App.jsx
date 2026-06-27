@@ -3,14 +3,17 @@ import FilterBar from './components/FilterBar';
 import CenterCard from './components/CenterCard';
 import UpdateModal from './components/UpdateModal';
 import AddCenterModal from './components/AddCenterModal';
+import GlobalMap from './components/GlobalMap';
 import { getCentros, updateCentro, addCentro } from './services/centrosService';
-import { ShieldAlert, Loader2, Plus } from 'lucide-react';
+import { ShieldAlert, Loader2, Plus, Map, List } from 'lucide-react';
 
 function App() {
   const [centros, setCentros] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Filters state
+  const [activeTab, setActiveTab] = useState('centro_acopio');
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
   const [searchQuery, setSearchQuery] = useState('');
   const [municipio, setMunicipio] = useState('');
   const [necesidad, setNecesidad] = useState('');
@@ -46,6 +49,8 @@ function App() {
 
   const filteredCentros = useMemo(() => {
     return centros.filter(center => {
+      const isCorrectType = center.tipo === activeTab || (!center.tipo && activeTab === 'centro_acopio');
+      
       const matchSearch = center.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           center.direccion.toLowerCase().includes(searchQuery.toLowerCase());
       
@@ -58,9 +63,9 @@ function App() {
 
       const matchEstado = estadoFilter ? center.estado_capacidad === estadoFilter : true;
       
-      return matchSearch && matchMunicipio && matchNecesidad && matchEstado;
+      return isCorrectType && matchSearch && matchMunicipio && matchNecesidad && matchEstado;
     });
-  }, [centros, searchQuery, municipio, necesidad, estadoFilter]);
+  }, [centros, searchQuery, municipio, necesidad, estadoFilter, activeTab]);
 
   const handleUpdateSubmit = async (updatedCenter) => {
     try {
@@ -112,7 +117,29 @@ function App() {
             className="btn btn-primary" 
             onClick={() => setShowAddModal(true)}
           >
-            <Plus size={18} /> Reportar Nuevo Centro
+            <Plus size={18} /> Reportar Nuevo Lugar
+          </button>
+        </div>
+
+        {/* TABS */}
+        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '2.5rem', flexWrap: 'wrap' }}>
+          <button 
+            className={`btn ${activeTab === 'centro_acopio' ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => setActiveTab('centro_acopio')}
+          >
+            📦 Centros de Acopio
+          </button>
+          <button 
+            className={`btn ${activeTab === 'refugio' ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => setActiveTab('refugio')}
+          >
+            🏠 Refugios
+          </button>
+          <button 
+            className={`btn ${activeTab === 'hospital' ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => setActiveTab('hospital')}
+          >
+            🏥 Hospitales / Clínicas
           </button>
         </div>
       </header>
@@ -130,23 +157,44 @@ function App() {
         </div>
       ) : (
         <>
-          <div style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
-            Mostrando {filteredCentros.length} centro(s) de acopio
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ color: 'var(--text-secondary)' }}>
+              Mostrando {filteredCentros.length} {activeTab === 'centro_acopio' ? 'centro(s) de acopio' : activeTab === 'refugio' ? 'refugio(s)' : 'hospital(es)'}
+            </div>
+            
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.1)', borderRadius: 'var(--radius-sm)', padding: '0.2rem' }}>
+              <button 
+                onClick={() => setViewMode('list')}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: viewMode === 'list' ? 'var(--accent-color)' : 'transparent', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s' }}
+              >
+                <List size={16} /> Lista
+              </button>
+              <button 
+                onClick={() => setViewMode('map')}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: viewMode === 'map' ? 'var(--accent-color)' : 'transparent', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s' }}
+              >
+                <Map size={16} /> Mapa
+              </button>
+            </div>
           </div>
           
-          <div className="grid-cards">
-            {filteredCentros.map(center => (
-              <CenterCard 
-                key={center.id} 
-                center={center} 
-                onUpdateClick={setSelectedCenter} 
-              />
-            ))}
-          </div>
+          {viewMode === 'map' ? (
+            <GlobalMap centros={filteredCentros} onUpdateClick={setSelectedCenter} />
+          ) : (
+            <div className="grid-cards">
+              {filteredCentros.map(center => (
+                <CenterCard 
+                  key={center.id} 
+                  center={center} 
+                  onUpdateClick={setSelectedCenter} 
+                />
+              ))}
+            </div>
+          )}
 
           {filteredCentros.length === 0 && (
             <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', marginTop: '2rem' }}>
-              <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>No se encontraron centros de acopio que coincidan con tu búsqueda.</p>
+              <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>No se encontraron {activeTab === 'centro_acopio' ? 'centros de acopio' : activeTab === 'refugio' ? 'refugios' : 'hospitales / clínicas'} que coincidan con tu búsqueda.</p>
             </div>
           )}
         </>
