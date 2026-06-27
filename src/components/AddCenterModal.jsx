@@ -9,15 +9,66 @@ const AddCenterModal = ({ onClose, onSubmit }) => {
     direccion: '',
     contacto_telefono: '',
     estado_capacidad: 'estable',
-    insumos_urgentes: ''
+    insumos_urgentes: []
   });
   
+  const [insumoInput, setInsumoInput] = useState('');
   const [coordinates, setCoordinates] = useState(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhoneChange = (e) => {
+    let input = e.target.value;
+    
+    // If the user is deleting the dash/space, allow it to process naturally by removing the last digit if they hit backspace on a separator
+    // But a simple format approach:
+    let cleaned = input.replace(/[^\d+]/g, '');
+    let formatted = cleaned;
+
+    if (cleaned.startsWith('+58')) {
+      const rest = cleaned.slice(3);
+      if (rest.length > 3) {
+        formatted = `+58 ${rest.slice(0,3)}-${rest.slice(3,10)}`;
+      } else if (rest.length > 0) {
+        formatted = `+58 ${rest}`;
+      }
+    } else if (cleaned.startsWith('0')) {
+      if (cleaned.length > 4) {
+        formatted = `${cleaned.slice(0,4)}-${cleaned.slice(4,11)}`;
+      }
+    }
+
+    setFormData(prev => ({ ...prev, contacto_telefono: formatted }));
+  };
+
+  const handleInsumoKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = insumoInput.trim();
+      if (val && !formData.insumos_urgentes.includes(val)) {
+        setFormData(prev => ({
+          ...prev,
+          insumos_urgentes: [...prev.insumos_urgentes, val]
+        }));
+      }
+      setInsumoInput('');
+    } else if (e.key === 'Backspace' && insumoInput === '') {
+      setFormData(prev => ({
+        ...prev,
+        insumos_urgentes: prev.insumos_urgentes.slice(0, -1)
+      }));
+    }
+  };
+
+  const removeInsumo = (indexToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      insumos_urgentes: prev.insumos_urgentes.filter((_, index) => index !== indexToRemove)
+    }));
   };
 
   const handleLocationSelected = async (latlng) => {
@@ -58,10 +109,11 @@ const AddCenterModal = ({ onClose, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const insumosArray = formData.insumos_urgentes
-      .split(',')
-      .map(i => i.trim())
-      .filter(i => i !== '');
+    // Add any remaining text in the input as an insumo before submitting
+    const finalInsumos = [...formData.insumos_urgentes];
+    if (insumoInput.trim() && !finalInsumos.includes(insumoInput.trim())) {
+      finalInsumos.push(insumoInput.trim());
+    }
 
     const newCenter = {
       id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
@@ -70,7 +122,7 @@ const AddCenterModal = ({ onClose, onSubmit }) => {
       direccion: formData.direccion,
       contacto_telefono: formData.contacto_telefono,
       estado_capacidad: formData.estado_capacidad,
-      insumos_urgentes: insumosArray,
+      insumos_urgentes: finalInsumos,
       insumos_recibidos: [],
       verificado: false,
       latitud: coordinates ? coordinates.lat : null,
@@ -149,7 +201,7 @@ const AddCenterModal = ({ onClose, onSubmit }) => {
               <input 
                 name="contacto_telefono"
                 value={formData.contacto_telefono}
-                onChange={handleChange}
+                onChange={handlePhoneChange}
                 className="input-field" 
                 placeholder="Ej. +58 414-XXXXXXX"
               />
@@ -173,14 +225,48 @@ const AddCenterModal = ({ onClose, onSubmit }) => {
           </div>
 
           <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Insumos Urgentes (separados por coma)</label>
-            <input 
-              name="insumos_urgentes"
-              value={formData.insumos_urgentes}
-              onChange={handleChange}
-              className="input-field" 
-              placeholder="Ej. Agua, Medicinas, Comida enlatada"
-            />
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Insumos Urgentes</label>
+            <div 
+              className="input-field"
+              style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: '0.5rem', 
+                minHeight: '45px',
+                height: 'auto',
+                padding: '0.5rem',
+                alignItems: 'center',
+                cursor: 'text'
+              }}
+              onClick={() => document.getElementById('insumo-input')?.focus()}
+            >
+              {formData.insumos_urgentes.map((insumo, index) => (
+                <span key={index} className="badge badge-stable" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', textTransform: 'none', fontSize: '0.85rem' }}>
+                  {insumo}
+                  <button type="button" onClick={() => removeInsumo(index)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', padding: 0 }}>
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+              <input 
+                id="insumo-input"
+                value={insumoInput}
+                onChange={(e) => setInsumoInput(e.target.value)}
+                onKeyDown={handleInsumoKeyDown}
+                style={{ 
+                  flex: 1, 
+                  minWidth: '120px', 
+                  background: 'transparent', 
+                  border: 'none', 
+                  outline: 'none', 
+                  color: 'var(--text-primary)',
+                  fontSize: '0.95rem',
+                  fontFamily: 'inherit'
+                }} 
+                placeholder={formData.insumos_urgentes.length === 0 ? "Ej. Agua, Medicinas (Presiona Enter o Coma)" : "Agregar otro..."}
+              />
+            </div>
+            <small style={{ color: 'var(--text-secondary)' }}>Escribe un insumo y presiona <b>Enter</b> o <b>Coma</b> para agregarlo. Puedes agregar varios.</small>
           </div>
 
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
