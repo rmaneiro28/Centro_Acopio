@@ -4,8 +4,9 @@ import CenterCard from './components/CenterCard';
 import UpdateModal from './components/UpdateModal';
 import AddCenterModal from './components/AddCenterModal';
 import GlobalMap from './components/GlobalMap';
+import ApiDocsDashboard from './components/ApiDocsDashboard';
 import { getCentros, updateCentro, addCentro } from './services/centrosService';
-import { ShieldAlert, Loader2, Plus, Map, List } from 'lucide-react';
+import { ShieldAlert, Loader2, Plus, Map, List, Code } from 'lucide-react';
 
 function App() {
   const [centros, setCentros] = useState([]);
@@ -22,6 +23,7 @@ function App() {
   // Modal state
   const [selectedCenter, setSelectedCenter] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showApiDocsModal, setShowApiDocsModal] = useState(false);
 
   useEffect(() => {
     // Attempt to load from localStorage first for instant offline feel
@@ -112,12 +114,19 @@ function App() {
         </div>
         <p className="app-subtitle">Encuentra dónde donar o ayudar cerca de ti. Información verificada por la comunidad.</p>
         
-        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <button 
             className="btn btn-primary" 
             onClick={() => setShowAddModal(true)}
           >
             <Plus size={18} /> Reportar Nuevo Lugar
+          </button>
+          <button 
+            className="btn btn-outline" 
+            onClick={() => setShowApiDocsModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Code size={18} /> API Developers
           </button>
         </div>
 
@@ -213,6 +222,10 @@ function App() {
           onClose={() => setShowAddModal(false)}
           onSubmit={handleAddSubmit}
         />
+      )}
+
+      {showApiDocsModal && (
+        <ApiDocsDashboard onClose={() => setShowApiDocsModal(false)} />
       )}
     </div>
   );

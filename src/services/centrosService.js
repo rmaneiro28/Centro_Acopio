@@ -1,47 +1,19 @@
-import { supabase } from './supabaseClient';
+import { api } from './apiClient';
+
+const TABLE_NAME = 'centros_acopio';
 
 export const getCentros = async () => {
-  const { data, error } = await supabase
-    .from('centros_acopio')
-    .select('*')
-    .order('ultima_actualizacion', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching centros:', error);
-    throw error;
-  }
-
-  return data || [];
+  return await api.getAll(TABLE_NAME, {
+    orderBy: { column: 'ultima_actualizacion', ascending: false }
+  });
 };
 
 export const addCentro = async (centroData) => {
   // Remove ID to let Supabase generate a UUID if using the SQL schema provided
   const { id, ...dataToInsert } = centroData;
-  
-  const { data, error } = await supabase
-    .from('centros_acopio')
-    .insert([dataToInsert])
-    .select();
-
-  if (error) {
-    console.error('Error adding centro:', error);
-    throw error;
-  }
-
-  return data[0];
+  return await api.create(TABLE_NAME, dataToInsert);
 };
 
 export const updateCentro = async (id, updateData) => {
-  const { data, error } = await supabase
-    .from('centros_acopio')
-    .update(updateData)
-    .eq('id', id)
-    .select();
-
-  if (error) {
-    console.error('Error updating centro:', error);
-    throw error;
-  }
-
-  return data[0];
+  return await api.update(TABLE_NAME, id, updateData);
 };
