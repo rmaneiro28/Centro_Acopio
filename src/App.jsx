@@ -23,7 +23,20 @@ function App() {
   // Modal state
   const [selectedCenter, setSelectedCenter] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showApiDocsModal, setShowApiDocsModal] = useState(false);
+
+  // Simple Router State
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handlePopState = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (path) => {
+    window.history.pushState(null, '', path);
+    setCurrentPath(path);
+  };
 
   useEffect(() => {
     // Attempt to load from localStorage first for instant offline feel
@@ -105,6 +118,10 @@ function App() {
     }
   };
 
+  if (currentPath === '/v1/docs/api') {
+    return <ApiDocsDashboard onClose={() => navigateTo('/')} />;
+  }
+
   return (
     <div className="container">
       <header className="app-header animate-fade-in" style={{ position: 'relative' }}>
@@ -123,7 +140,7 @@ function App() {
           </button>
           <button 
             className="btn btn-outline" 
-            onClick={() => setShowApiDocsModal(true)}
+            onClick={() => navigateTo('/v1/docs/api')}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
             <Code size={18} /> API Developers
@@ -222,10 +239,6 @@ function App() {
           onClose={() => setShowAddModal(false)}
           onSubmit={handleAddSubmit}
         />
-      )}
-
-      {showApiDocsModal && (
-        <ApiDocsDashboard onClose={() => setShowApiDocsModal(false)} />
       )}
     </div>
   );
