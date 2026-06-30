@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Send } from 'lucide-react';
+import { X, Send, Activity, Users } from 'lucide-react';
+import PacientesList from './PacientesList';
 
 const UpdateModal = ({ center, onClose, onSubmit }) => {
   const [estado, setEstado] = useState(center.estado_capacidad);
@@ -11,6 +12,9 @@ const UpdateModal = ({ center, onClose, onSubmit }) => {
   const [recibidosInput, setRecibidosInput] = useState('');
   
   const [comentario, setComentario] = useState('');
+  
+  // Si es hospital, por defecto va a pacientes. Si es acopio, a estado.
+  const [activeTab, setActiveTab] = useState(center.tipo === 'hospital' ? 'pacientes' : 'estado');
 
   const handleKeyDown = (e, list, setList, input, setInput) => {
     if (e.key === 'Enter' || e.key === ',') {
@@ -62,10 +66,32 @@ const UpdateModal = ({ center, onClose, onSubmit }) => {
         </div>
 
         <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
-          Estás reportando el estado para: <strong style={{ color: 'var(--text-primary)' }}>{center.nombre}</strong>
+          Estás viendo información para: <strong style={{ color: 'var(--text-primary)' }}>{center.nombre}</strong>
         </p>
 
-        <form onSubmit={handleSubmit}>
+        {center.tipo === 'refugio' && (
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+            <button 
+              type="button"
+              className={`btn ${activeTab === 'estado' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => setActiveTab('estado')}
+              style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px' }}
+            >
+              <Activity size={16} /> Estado e Insumos
+            </button>
+            <button 
+              type="button"
+              className={`btn ${activeTab === 'pacientes' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => setActiveTab('pacientes')}
+              style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px' }}
+            >
+              <Users size={16} /> Personas Ingresadas
+            </button>
+          </div>
+        )}
+
+        {(center.tipo === 'centro_acopio' || (center.tipo === 'refugio' && activeTab === 'estado')) && (
+        <form onSubmit={handleSubmit} className="animate-fade-in">
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Estado de Capacidad Actual</label>
             <select 
@@ -103,7 +129,7 @@ const UpdateModal = ({ center, onClose, onSubmit }) => {
                 placeholder={urgentes.length === 0 ? "Ej. Agua, Medicinas (Presiona Enter)" : "Agregar otro..."}
               />
             </div>
-            <small style={{ color: 'var(--text-secondary)' }}>Lo que el centro más necesita en este momento.</small>
+            <small style={{ color: 'var(--text-secondary)' }}>Lo que el lugar más necesita en este momento.</small>
           </div>
 
           <div style={{ marginBottom: '1.5rem' }}>
@@ -130,7 +156,7 @@ const UpdateModal = ({ center, onClose, onSubmit }) => {
                 placeholder={recibidos.length === 0 ? "Ej. Ropa de adulto (Presiona Enter)" : "Agregar otro..."}
               />
             </div>
-            <small style={{ color: 'var(--text-secondary)' }}>Insumos que el centro ya tiene en exceso y pide no enviar más.</small>
+            <small style={{ color: 'var(--text-secondary)' }}>Insumos que ya tienen en exceso y piden no enviar más.</small>
           </div>
 
           <div style={{ marginBottom: '1.5rem' }}>
@@ -154,6 +180,13 @@ const UpdateModal = ({ center, onClose, onSubmit }) => {
             </button>
           </div>
         </form>
+        )}
+        
+        {(center.tipo === 'hospital' || (center.tipo === 'refugio' && activeTab === 'pacientes')) && (
+          <div className="animate-fade-in">
+            <PacientesList centroId={center.id} />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -94,8 +94,8 @@ const ApiDocsDashboard = ({ onClose }) => {
     try {
       if (activeEndpoint === 'get_centros') {
         const data = await getCentros();
-        // Mostrar los primeros 3 items para no saturar la vista
-        setResponse(JSON.stringify(data.slice(0, 3), null, 2));
+        // Se muestran todos los datos reales (el contenedor de respuesta ahora tendrá scroll propio)
+        setResponse(JSON.stringify(data, null, 2));
       } else if (activeEndpoint === 'post_centro') {
         // Respuesta simulada para POST para no escribir basura en BD
         setTimeout(() => {

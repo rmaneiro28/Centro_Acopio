@@ -358,6 +358,7 @@
   flex-direction: column;
   overflow: hidden;
   min-height: 200px;
+  max-height: 400px; /* Fuerza el scrollbar interno si hay muchos datos */
 }
 
 .api-response-content {
@@ -369,7 +370,7 @@
   color: #8b949e;
   font-size: 0.85rem;
   font-family: 'Fira Code', monospace;
-  overflow: auto;
+  overflow-y: auto; /* Activa el scroll vertical */
 }
 
 .api-response-json {
